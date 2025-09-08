@@ -9,6 +9,7 @@
     #unlock {
       position: fixed; inset: 0; display: grid; place-items: center;
       background:#0b0b0b; color:#fff; cursor:pointer; user-select:none;
+      text-align: center; padding: 24px;
     }
     #unlock.hidden { display:none; }
     #unlock button { padding:12px 18px; border:0; border-radius:10px; }
@@ -19,14 +20,14 @@
   <h1>🔥 NFC Troll 🔥</h1>
 
   <audio id="troll" preload="auto" loop>
-    <!-- Sem dej svůj „raw“ Dropbox link, např. ?raw=1 -->
-    <source src="https://ucd9ef33a7ce39fdeaec779406c5.dl.dropboxusercontent.com/cd/0/inline/Cw_NLj6xoQL1XHvHuYbIKsUv-co7jlSWcRQh9Dj9bzhjydTPyNk175-D6ygwEsWYtn3PNxf3ZpGgCj0XdCdkRn2g6AhBTJUjtGnZVWEMWFfWdKhWxEj5Q6curXxkLbX8auSHB5uuJZc2u1Fwd1p-NA_r/file#">
+    <!-- ↓↓↓ sem vlož svůj Dropbox „raw“ odkaz ↓↓↓ -->
+    <source src="https://www.dropbox.com/scl/fi/rqtwwc1mb9ah28qmlmo64/Alexis-Texas-sound-cZmO5A2j_0.mp3?rlkey=i09ltdw94uy9jq890l1u3u7md&st=5rjl9m3x&raw=1">
     Tvůj prohlížeč nepodporuje audio.
   </audio>
 
   <div id="unlock" class="hidden">
     <div>
-      🔊 Klikni kdekoliv pro zapnutí zvuku
+      🔊 Klikni/ťukni kamkoliv pro zapnutí zvuku
       <div style="margin-top:12px;"><button>Zapnout</button></div>
     </div>
   </div>
@@ -38,11 +39,10 @@
     async function tryLoudAutoplay() {
       try {
         audio.muted = false;               // zkus nahlas
-        await audio.play();                // může vyhodit výjimku
-        overlay.classList.add('hidden');   // hraje nahlas, overlay netřeba
+        await audio.play();
+        overlay.classList.add('hidden');   // hraje nahlas
       } catch {
-        // fallback: pustíme ztlumeně a vyžádáme gesto
-        try {
+        try {                              // fallback: hraj potichu
           audio.muted = true;
           await audio.play();
         } catch {}
@@ -59,12 +59,10 @@
         await audio.play();
         overlay.classList.add('hidden');
       } catch(e) {
-        // Když i to selže, necháme overlay a další gesto to zkusí znovu
         console.log('Přehrávání zablokováno:', e);
       }
     }
 
-    // Spusť pokus hned po loadu
     window.addEventListener('load', tryLoudAutoplay);
   </script>
 </body>
