@@ -1,13 +1,71 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>Trolling Sound</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🔥 NFC Troll 🔥</title>
+  <style>
+    html, body { margin:0; height:100%; font-family: system-ui, sans-serif; }
+    #unlock {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background:#0b0b0b; color:#fff; cursor:pointer; user-select:none;
+    }
+    #unlock.hidden { display:none; }
+    #unlock button { padding:12px 18px; border:0; border-radius:10px; }
+    h1 { padding:16px; }
+  </style>
 </head>
 <body>
-  <audio autoplay>
-    <source src="https://www.dropbox.com/scl/fi/rqtwwc1mb9ah28qmlmo64/Alexis-Texas-sound-cZmO5A2j_0.mp3?rlkey=i09ltdw94uy9jq890l1u3u7md&st=ho4y7tyx&raw=1" type="audio/mpeg">
+  <h1>🔥 NFC Troll 🔥</h1>
+
+  <audio id="troll" preload="auto" loop>
+    <!-- Sem dej svůj „raw“ Dropbox link, např. ?raw=1 -->
+    <source src="https://ucd9ef33a7ce39fdeaec779406c5.dl.dropboxusercontent.com/cd/0/inline/Cw_NLj6xoQL1XHvHuYbIKsUv-co7jlSWcRQh9Dj9bzhjydTPyNk175-D6ygwEsWYtn3PNxf3ZpGgCj0XdCdkRn2g6AhBTJUjtGnZVWEMWFfWdKhWxEj5Q6curXxkLbX8auSHB5uuJZc2u1Fwd1p-NA_r/file#">
     Tvůj prohlížeč nepodporuje audio.
   </audio>
+
+  <div id="unlock" class="hidden">
+    <div>
+      🔊 Klikni kdekoliv pro zapnutí zvuku
+      <div style="margin-top:12px;"><button>Zapnout</button></div>
+    </div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('troll');
+    const overlay = document.getElementById('unlock');
+
+    async function tryLoudAutoplay() {
+      try {
+        audio.muted = false;               // zkus nahlas
+        await audio.play();                // může vyhodit výjimku
+        overlay.classList.add('hidden');   // hraje nahlas, overlay netřeba
+      } catch {
+        // fallback: pustíme ztlumeně a vyžádáme gesto
+        try {
+          audio.muted = true;
+          await audio.play();
+        } catch {}
+        overlay.classList.remove('hidden');
+        ['pointerdown','keydown','touchstart'].forEach(ev =>
+          document.addEventListener(ev, enableSoundOnce, { once:true, passive:true })
+        );
+      }
+    }
+
+    async function enableSoundOnce() {
+      try {
+        audio.muted = false;
+        await audio.play();
+        overlay.classList.add('hidden');
+      } catch(e) {
+        // Když i to selže, necháme overlay a další gesto to zkusí znovu
+        console.log('Přehrávání zablokováno:', e);
+      }
+    }
+
+    // Spusť pokus hned po loadu
+    window.addEventListener('load', tryLoudAutoplay);
+  </script>
 </body>
 </html>
