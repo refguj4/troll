@@ -6,64 +6,74 @@
   <title>🔥 NFC Troll 🔥</title>
   <style>
     html, body { margin:0; height:100%; font-family: system-ui, sans-serif; }
+    h1 { padding:16px; }
     #unlock {
       position: fixed; inset: 0; display: grid; place-items: center;
-      background:#0b0b0b; color:#fff; cursor:pointer; user-select:none;
-      text-align: center; padding: 24px;
+      background:#0b0b0b; color:#fff; text-align:center; cursor:pointer;
+      user-select:none;
     }
     #unlock.hidden { display:none; }
-    #unlock button { padding:12px 18px; border:0; border-radius:10px; }
-    h1 { padding:16px; }
+    #unlock button { padding:12px 18px; border:0; border-radius:10px; margin-top:12px; }
   </style>
 </head>
 <body>
   <h1>🔥 NFC Troll 🔥</h1>
 
-  <audio id="troll" preload="auto" loop>
-    <!-- ↓↓↓ sem vlož svůj Dropbox „raw“ odkaz ↓↓↓ -->
-    <source src="https://www.dropbox.com/scl/fi/rqtwwc1mb9ah28qmlmo64/Alexis-Texas-sound-cZmO5A2j_0.mp3?rlkey=i09ltdw94uy9jq890l1u3u7md&st=5rjl9m3x&raw=1">
+  <!-- Pozn.: playsinline kvůli iOS videos (nevadí u audia), preload pro rychlost -->
+  <audio id="troll" preload="auto" loop playsinline>
+    <source id="srcEl" src="https://www.dropbox.com/scl/fi/rqtwwc1mb9ah28qmlmo64/Alexis-Texas-sound-cZmO5A2j_0.mp3?rlkey=i09ltdw94uy9jq890l1u3u7md&st=5rjl9m3x&raw=1" type="audio/mpeg">
     Tvůj prohlížeč nepodporuje audio.
   </audio>
 
-  <div id="unlock" class="hidden">
-    <div>
-      🔊 Klikni/ťukni kamkoliv pro zapnutí zvuku
-      <div style="margin-top:12px;"><button>Zapnout</button></div>
-    </div>
+  <!-- Overlay je viditelný hned, aby první tap šel do našeho handleru -->
+  <div id="unlock">
+    🔊 Klepni pro zapnutí zvuku
+    <div><button>Zapnout</button></div>
   </div>
 
   <script>
     const audio = document.getElementById('troll');
+    const srcEl = document.getElementById('srcEl');
     const overlay = document.getElementById('unlock');
+    const SRC = srcEl.getAttribute('src');
 
-    async function tryLoudAutoplay() {
+    // 1) Pokus o autoplay nahlas (když to prohlížeč povolí, overlay schováme)
+    document.addEventListener('DOMContentLoaded', async () => {
       try {
-        audio.muted = false;               // zkus nahlas
+        audio.muted = false;
         await audio.play();
-        overlay.classList.add('hidden');   // hraje nahlas
+        overlay.classList.add('hidden'); // povedlo se nahlas, overlay není potřeba
       } catch {
-        try {                              // fallback: hraj potichu
-          audio.muted = true;
-          await audio.play();
-        } catch {}
-        overlay.classList.remove('hidden');
-        ['pointerdown','keydown','touchstart'].forEach(ev =>
-          document.addEventListener(ev, enableSoundOnce, { once:true, passive:true })
-        );
+        // fallback: zkusíme ztlumeně (pro rychlý start), overlay ponecháme
+        try { audio.muted = true; await audio.play(); } catch {}
       }
-    }
+    });
 
-    async function enableSoundOnce() {
+    // 2) Odemknutí zvuku na PRVNÍ gesto – posloucháme „po uvolnění“ (click/touchend/pointerup)
+    ['click','touchend','pointerup','keydown'].forEach(ev => {
+      document.addEventListener(ev, unlockAudio, { capture:true });
+    });
+
+    async function unlockAudio() {
+      // iOS někdy vyžaduje, aby src bylo na <audio>, ne jen v <source>
+      if (!audio.src) audio.src = SRC;
+
       try {
         audio.muted = false;
         await audio.play();
         overlay.classList.add('hidden');
-      } catch(e) {
-        console.log('Přehrávání zablokováno:', e);
+        detach(); // už nepotřebujeme další posluchače
+      } catch (e) {
+        console.log('Odemknutí selhalo:', e);
+        // volitelně: můžeme zkusit audio.load(); a znovu play() při dalším gestu
       }
     }
 
-    window.addEventListener('load', tryLoudAutoplay);
+    function detach() {
+      ['click','touchend','pointerup','keydown'].forEach(ev => {
+        document.removeEventListener(ev, unlockAudio, { capture:true });
+      });
+    }
   </script>
 </body>
 </html>
